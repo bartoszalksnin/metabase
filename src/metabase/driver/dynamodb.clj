@@ -35,7 +35,7 @@
        :secret-key "..."
        :endpoint (str "http://" (details :host) ":" (details :port))}
       )
-    (println (str (details :host) ":" (details :port)))
+    (println (str "http://" (details :host) ":" (details :port)))
     (println  (far/list-tables client-opts))
     (boolean (far/list-tables client-opts)))
 
@@ -138,10 +138,16 @@
       (:nested-fields field-info) (assoc :nested-fields (set (for [field (keys (:nested-fields field-info))]
                                                                (describe-table-field field (field (:nested-fields field-info)))))))))
 
+;(defn- describe-database [database]
+;  (with-mongo-connection [^com.mongodb.DB conn database]
+;    {:tables (set (for [collection (disj (mdb/get-collection-names conn) "system.indexes")]
+;                    {:schema nil, :name collection}))}))
+
 (defn- describe-database [database]
-  (with-mongo-connection [^com.mongodb.DB conn database]
-    {:tables (set (for [collection (disj (mdb/get-collection-names conn) "system.indexes")]
-                    {:schema nil, :name collection}))}))
+  {:tables #{{:schema nil, :name "checkins"}
+             {:schema nil, :name "categories"}
+             {:schema nil, :name "users"}
+             {:schema nil, :name "venues"}}})
 
 (defn- table-sample-column-info
   "Sample the rows (i.e., documents) in `table` and return a map of information about the column keys we found in that

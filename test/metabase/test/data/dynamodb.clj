@@ -5,7 +5,8 @@
             [monger
              [collection :as mc]
              [core :as mg]])
-  (:import metabase.driver.mongo.MongoDriver))
+  (:import metabase.driver.mongo.MongoDriver)
+  (:import metabase.driver.dynamodb.DynamodbDriver))
 
 (defn- database->connection-details
   ([dbdef]
@@ -43,12 +44,12 @@
               (catch com.mongodb.MongoException _))))))))
 
 
-(u/strict-extend MongoDriver
+(u/strict-extend DynamodbDriver
   i/IDriverTestExtensions
   (merge i/IDriverTestExtensionsDefaultsMixin
          {:create-db!                   (u/drop-first-arg create-db!)
           :database->connection-details database->connection-details
-          :engine                       (constantly :mongo)
+          :engine                       (constantly :dynamodb)
           :format-name                  (fn [_ table-or-field-name]
                                           (if (= table-or-field-name "id")
                                             "_id"

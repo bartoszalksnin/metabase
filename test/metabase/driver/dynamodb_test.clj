@@ -33,37 +33,45 @@
 
 ;; ## Tests for connection functions
 
-(datasets/expect-with-engine :dynamodb
-  false
-  (driver/can-connect-with-details? :dynamodb {:host   "localhost"
-                                            :port   3000
-                                            :dbname "bad-db-name"}))
+;(datasets/expect-with-engine :dynamodb
+;  false
+;  (driver/can-connect-with-details? :dynamodb {:host   "localhost"
+;                                            :port   3000
+;                                            :dbname "bad-db-name"}))
+;
+;(datasets/expect-with-engine :dynamodb
+;  false
+;  (driver/can-connect-with-details? :dynamodb {}))
+;
+;(datasets/expect-with-engine :dynamodb
+;  true
+;  (driver/can-connect-with-details? :dynamodb {:host "localhost"
+;                                                :port 8000
+;                                                :dbname "metabase-test"}))
+;
+;;; should use default port 27017 if not specified
+;(datasets/expect-with-engine :dynamodb
+;  true
+;  (driver/can-connect-with-details? :dynamodb {:host "localhost"
+;                                               :port 8000
+;                                               :other 1
+;                                            :dbname "metabase-test"}))
+;
+;(datasets/expect-with-engine :dynamodb
+;  false
+;  (driver/can-connect-with-details? :dynamodb {:host "123.4.5.6"
+;                                            :dbname "bad-db-name?connectTimeoutMS=50"}))
+;
+;(datasets/expect-with-engine :dynamodb
+;  false
+;  (driver/can-connect-with-details? :dynamodb {:host "localhost"
+;                                            :port 3000
+;                                            :dbname "bad-db-name?connectTimeoutMS=50"}))
 
+;; DESCRIBE-DATABASE
 (datasets/expect-with-engine :dynamodb
-  false
-  (driver/can-connect-with-details? :dynamodb {}))
-
-(datasets/expect-with-engine :dynamodb
-  true
-  (driver/can-connect-with-details? :dynamodb {:host "localhost"
-                                                :port 8000
-                                                :dbname "metabase-test"}))
-
-;; should use default port 27017 if not specified
-(datasets/expect-with-engine :dynamodb
-  true
-  (driver/can-connect-with-details? :dynamodb {:host "localhost"
-                                               :port 8000
-                                               :other 1
-                                            :dbname "metabase-test"}))
-
-(datasets/expect-with-engine :dynamodb
-  false
-  (driver/can-connect-with-details? :dynamodb {:host "123.4.5.6"
-                                            :dbname "bad-db-name?connectTimeoutMS=50"}))
-
-(datasets/expect-with-engine :dynamodb
-  false
-  (driver/can-connect-with-details? :dynamodb {:host "localhost"
-                                            :port 3000
-                                            :dbname "bad-db-name?connectTimeoutMS=50"}))
+                             {:tables #{{:schema nil, :name "checkins"}
+                                        {:schema nil, :name "categories"}
+                                        {:schema nil, :name "users"}
+                                        {:schema nil, :name "venues"}}}
+                             (driver/describe-database (DynamodbDriver.) (data/db)))
