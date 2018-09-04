@@ -37,7 +37,7 @@
       )
     (println (str (details :host) ":" (details :port)))
     (println  (far/list-tables client-opts))
-    (= (far/list-tables client-opts) [:music]))
+    (boolean (far/list-tables client-opts)))
 
 (defn- humanize-connection-error-message [message]
   (condp re-matches message

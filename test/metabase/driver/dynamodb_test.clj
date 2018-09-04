@@ -46,14 +46,15 @@
 (datasets/expect-with-engine :dynamodb
   true
   (driver/can-connect-with-details? :dynamodb {:host "localhost"
-                                            :port 8000
-                                            :dbname "metabase-test"}))
+                                                :port 8000
+                                                :dbname "metabase-test"}))
 
 ;; should use default port 27017 if not specified
 (datasets/expect-with-engine :dynamodb
   true
   (driver/can-connect-with-details? :dynamodb {:host "localhost"
                                                :port 8000
+                                               :other 1
                                             :dbname "metabase-test"}))
 
 (datasets/expect-with-engine :dynamodb
