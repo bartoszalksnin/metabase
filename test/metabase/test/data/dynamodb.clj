@@ -2,6 +2,7 @@
   (:require [metabase.driver.mongo.util :refer [with-mongo-connection]]
             [metabase.test.data.interface :as i]
             [metabase.util :as u]
+            [taoensso.faraday :as far]
             [monger
              [collection :as mc]
              [core :as mg]])
@@ -16,16 +17,40 @@
    (database->connection-details dbdef)))
 
 (defn- destroy-db! [dbdef]
+  (def client-opts
+    {;;; For DDB Local just use some random strings here, otherwise include your
+     ;;; production IAM keys:
+     :access-key "..."
+     :secret-key "..."
+     :endpoint (str "http://localhost:8000")}
+    )
+  (far/delete-table client-opts :categories)
+  (far/delete-table client-opts :checkins)
+  (far/delete-table client-opts :users)
+  (far/delete-table client-opts :venues)
   (with-open [mongo-connection (mg/connect (database->connection-details dbdef))]
     (mg/drop-db mongo-connection (i/escaped-name dbdef))))
 
 (defn- create-db! [{:keys [table-definitions], :as dbdef}]
   (println "WHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAT")
+  (def client-opts
+    {;;; For DDB Local just use some random strings here, otherwise include your
+     ;;; production IAM keys:
+     :access-key "..."
+     :secret-key "..."
+     :endpoint (str "http://localhost:8000")}
+    )
   (println table-definitions)
   (destroy-db! dbdef)
   (with-mongo-connection [mongo-db (database->connection-details dbdef)]
     (println "WHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAT")
     (doseq [{:keys [field-definitions table-name rows]} table-definitions]
+      (far/create-table client-opts table-name
+                        [:id :n]  ; Primary key named "id", (:n => number type)
+                        {:throughput {:read 1 :write 1} ; Read & write capacity (units/sec)
+                         :block? true ; Block thread during table creation
+                         })
+      (println  (far/list-tables client-opts))
       (let [field-names (for [field-definition field-definitions]
                           (keyword (:field-name field-definition)))]
         ;; Use map-indexed so we can get an ID for each row (index + 1)

@@ -140,14 +140,22 @@
 
 ;(defn- describe-database [database]
 ;  (with-mongo-connection [^com.mongodb.DB conn database]
-;    {:tables (set (for [collection (disj (mdb/get-collection-names conn) "system.indexes")]
+;    {:tables (set (for [collection (far/list-tables client-opts)]
 ;                    {:schema nil, :name collection}))}))
 
 (defn- describe-database [database]
-  {:tables #{{:schema nil, :name "checkins"}
-             {:schema nil, :name "categories"}
-             {:schema nil, :name "users"}
-             {:schema nil, :name "venues"}}})
+  (def client-opts
+    {;;; For DDB Local just use some random strings here, otherwise include your
+     ;;; production IAM keys:
+     :access-key "..."
+     :secret-key "..."
+     :endpoint "http://localhost:8000"}
+    )
+  (println "WOOOOO")
+  (println {:tables (set (for [collection (far/list-tables client-opts)]
+                           {:schema nil, :name (name collection)}))})
+  {:tables (set (for [collection (far/list-tables client-opts)]
+                  {:schema nil, :name (name collection)}))})
 
 (defn- table-sample-column-info
   "Sample the rows (i.e., documents) in `table` and return a map of information about the column keys we found in that
