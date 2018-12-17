@@ -211,11 +211,53 @@ yarn run test-karma-watch # Watch for file changes
 ```
 
 ## Backend development
-Leiningen and your REPL are the main development tools for the backend.  There are some directions below on how to setup your REPL for easier development.
+Leiningen and your REPL are the main development tools for the backend. There are some directions below on how to setup your REPL for easier development.
 
 And of course your Jetty development server is available via
 
+    lein run
+
+To automatically load backend namespaces when files are changed, you can instead run with
+
     lein ring server
+
+`lein ring server` takes significantly longer to launch than `lein run`, so if you aren't working on backend code we'd recommend sticking to launching with `lein run`.
+
+### Building drivers
+
+Most of the drivers Metabase uses to connect to external data warehouse databases are separate Leiningen projects under the `modules/` subdirectory. When running Metabase via `lein`, you'll
+need to build these drivers in order to have access to them. You can build drivers as follows:
+
+```
+# Build the 'mongo' driver
+./bin/build-driver.sh mongo
+```
+
+(or)
+
+```
+# Build all drivers
+./bin/build-drivers.sh
+```
+
+The first time you build a driver, it will be a bit slow, because Metabase needs to build the core project a couple of times so the driver can use it as a dependency; you can take comfort in the
+fact that you won't need to build the driver again after that. Alternatively, running Metabase 1.0+ from the uberjar will unpack all of the pre-built drivers into your plugins directory; you can
+do this instead if you already have a Metabase uberjar (just make sure `plugins` is in the root directory of the Metabase source, i.e. the same directory as  `project.clj`).
+
+### Including driver source paths for development or other Leiningen tasks
+
+For REPL-based development or when running other Leiningen tasks you can add the `include-all-drivers` profile to merge the drivers' dependencies and source paths into the Metabase
+project:
+
+```
+# Find out-of-date dependencies for the core Metabase project and all drivers
+# (Assuming you have the lein-ancient plugin in your ~/.lein/profiles.clj)
+lein with-profiles +include-all-drivers ancient
+```
+
+When developing with Emacs and CIDER sending the universal prefix argument to `cider-jack-in` (i.e. running it with `C-u M-x cider-jack-in`) will prompt you for the command it should use
+to start the NREPL process; you can add `with-profiles +include-all-drivers` to that command to include driver source paths, which will let you work on the core Metabase project and all of
+the subprojects from a single REPL. :sunglasses:
 
 
 #### Unit Tests / Linting
@@ -228,14 +270,11 @@ or a specific test with
 
     lein test metabase.api.session-test
 
-By default, the tests only run against the `h2` driver. You can specify which drivers to run tests against with the env var `ENGINES`:
+By default, the tests only run against the `h2` driver. You can specify which drivers to run tests against with the env var `DRIVERS`:
 
-    ENGINES=h2,postgres,mysql,mongo lein test
+    DRIVERS=h2,postgres,mysql,mongo lein test
 
-At the time of this writing, the valid engines are `h2`, `postgres`, `mysql`, `mongo`, `sqlserver`, `sqlite`, `druid`, `bigquery`, `oracle`, `vertica`, and `redshift`. Some of these engines require additional parameters
-when testing since they are impossible to run locally (such as Redshift and Bigquery). The tests will fail on launch and let you know what parameters to supply if needed.
-
-Due to some issues with the way we've structured our test setup code, you currently always need to include `h2` in the `ENGINES` list. Thus to test something like `bigquery` you should specify `ENGINES=h2,bigquery`. Fortunately the H2 tests are fast so this should not make a noticeable difference.
+Some drivers require additional environment variables when testing since they are impossible to run locally (such as Redshift and Bigquery). The tests will fail on launch and let you know what parameters to supply if needed.
 
 ##### Run the linters:
 
